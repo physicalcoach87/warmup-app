@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>워밍업 타임테이블</title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="워밍업">
+  <meta name="theme-color" content="#070e1c">
+  <link rel="manifest" href="manifest.json">
+  <link id="apple-touch-icon" rel="apple-touch-icon" href="icon-180.png">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #070e1c;
+      --surface:   #0c1828;
+      --surface2:  #0f1f33;
+      --border:    rgba(255,255,255,0.07);
+      --blue:      #4a8cff;
+      --blue-dim:  rgba(74,140,255,0.12);
+      --green:     #22c55e;
+      --green-dim: rgba(34,197,94,0.12);
+      --text:      #f0f4ff;
+      --muted:     #4a6080;
+      --sub:       #8a9db8;
+    }
+
+    body {
+      font-family: 'Inter', 'Apple SD Gothic Neo', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* ── 헤더 ── */
+    .header {
+      width: 100%;
+      background: linear-gradient(180deg, #0a1f14 0%, var(--bg) 100%);
+      border-bottom: 1px solid rgba(34,197,94,0.15);
+      padding: 36px 20px 28px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .header::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, var(--green), transparent);
+    }
+
+    .header-eyebrow {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      color: var(--green);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .header h1 {
+      font-size: 26px;
+      font-weight: 900;
+      letter-spacing: -0.5px;
+      color: #fff;
+    }
+
+    .header p {
+      margin-top: 6px;
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 400;
+    }
+
+    /* ── 레이아웃 ── */
+    .wrap {
+      width: 100%;
+      max-width: 420px;
+      padding: 24px 16px 60px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    /* ── 섹션 레이블 ── */
+    .section-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+
+    /* ── 시간 입력 ── */
+    .time-block { margin-bottom: 14px; }
+
+    .time-input-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .time-accent {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      border-radius: 4px 0 0 4px;
+    }
+
+    .time-accent.blue { background: var(--blue); }
+    .time-accent.green { background: var(--green); }
+
+    input[type="time"] {
+      width: 100%;
+      padding: 16px 16px 16px 20px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      color: #fff;
+      font-size: 34px;
+      font-weight: 800;
+      font-family: 'Inter', monospace;
+      text-align: right;
+      outline: none;
+      -webkit-appearance: none;
+      transition: border-color .2s, background .2s;
+      letter-spacing: 2px;
+    }
+
+    input[type="time"].blue-input:focus {
+      border-color: rgba(74,140,255,0.5);
+      background: #0d1c33;
+    }
+
+    input[type="time"].green-input {
+      font-size: 26px;
+      border-color: rgba(34,197,94,0.2);
+    }
+
+    input[type="time"].green-input:focus {
+      border-color: rgba(34,197,94,0.5);
+      background: #0a1a12;
+    }
+
+    .time-label-inside {
+      position: absolute;
+      left: 16px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      pointer-events: none;
+    }
+
+    .time-label-inside.blue { color: var(--blue); }
+    .time-label-inside.green { color: var(--green); }
+
+    /* ── 구분선 ── */
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 4px 0 14px;
+    }
+
+    /* ── 스테퍼 입력 ── */
+    .stepper-group { display: flex; flex-direction: column; gap: 10px; }
+
+    .stepper-row {
+      display: flex;
+      align-items: center;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px 16px;
+      gap: 12px;
+      transition: border-color .2s;
+    }
+
+    .stepper-row:focus-within { border-color: rgba(74,140,255,0.3); }
+
+    .stepper-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: var(--surface2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 17px;
+      flex-shrink: 0;
+    }
+
+    .stepper-info { flex: 1; }
+
+    .stepper-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 2px;
+    }
+
+    .stepper-sub {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .stepper-ctrl {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .stepper-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--sub);
+      font-size: 18px;
+      font-weight: 300;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background .15s, color .15s;
+      line-height: 1;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .stepper-btn:active { background: #1e3050; color: #fff; }
+
+    .stepper-val {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--blue);
+      min-width: 36px;
+      text-align: center;
+    }
+
+    .stepper-unit {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    /* ── 계산 버튼 ── */
+    .btn-calc {
+      width: 100%;
+      padding: 18px;
+      background: linear-gradient(135deg, #16a34a, #15803d);
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: 700;
+      font-family: inherit;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      transition: opacity .2s, transform .1s;
+      box-shadow: 0 4px 20px rgba(34,197,94,0.25);
+      margin-top: 6px;
+    }
+
+    .btn-calc:hover { opacity: 0.9; }
+    .btn-calc:active { transform: scale(0.98); }
+
+    /* ── 결과 카드 ── */
+    #result-card {
+      display: none;
+      opacity: 0;
+      transform: translateY(16px);
+      transition: opacity .4s ease, transform .4s ease;
+    }
+
+    /* ── 타임테이블 ── */
+    .timetable { display: flex; flex-direction: column; }
+
+    .tt-event {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px 18px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .tt-event::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 4px;
+    }
+
+    .tt-event.calc::before { background: var(--blue); }
+    .tt-event.anchor::before { background: var(--green); }
+
+    .tt-event-icon {
+      font-size: 20px;
+      width: 40px;
+      height: 40px;
+      background: var(--surface2);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .tt-event.anchor .tt-event-icon {
+      background: var(--green-dim);
+    }
+
+    .tt-event-info { flex: 1; }
+
+    .tt-event-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--sub);
+    }
+
+    .tt-event.anchor .tt-event-name { color: var(--green); }
+
+    .tt-event-time {
+      font-size: 30px;
+      font-weight: 900;
+      color: var(--blue);
+      letter-spacing: 1px;
+      line-height: 1;
+      margin-top: 2px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .tt-event.anchor .tt-event-time {
+      color: var(--green);
+      font-size: 34px;
+    }
+
+    .tt-before-badge {
+      display: inline-block;
+      margin-left: 8px;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      background: var(--blue-dim);
+      color: var(--blue);
+      vertical-align: middle;
+    }
+
+    .tt-event.anchor .tt-before-badge {
+      background: var(--green-dim);
+      color: var(--green);
+    }
+
+    /* ── 구간 연결 ── */
+    .tt-connector {
+      display: flex;
+      align-items: center;
+      padding: 0 18px;
+      gap: 0;
+      height: 38px;
+    }
+
+    .tt-conn-line {
+      width: 4px;
+      height: 38px;
+      background: linear-gradient(180deg, var(--border), var(--border));
+      margin-left: 13px; /* align with left border */
+      flex-shrink: 0;
+    }
+
+    .tt-conn-badge {
+      margin-left: 14px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      padding: 4px 12px;
+      letter-spacing: 0.5px;
+    }
+
+    /* ── 다시하기 버튼 ── */
+    .btn-reset {
+      width: 100%;
+      padding: 14px;
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--sub);
+      font-size: 13px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background .2s, color .2s;
+      margin-top: 6px;
+    }
+
+    .btn-reset:hover { background: var(--surface); color: var(--text); }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-eyebrow">⚽ Football Warmup Planner</div>
+  <h1>워밍업 타임테이블</h1>
+  <p>라커아웃 시간을 기준으로 역산합니다</p>
+</div>
+
+<div class="wrap">
+
+  <!-- 입력 카드 -->
+  <div id="input-card">
+
+    <!-- 라커아웃 시간 -->
+    <div class="time-block">
+      <div class="section-label">라커아웃 시간</div>
+      <div class="time-input-wrap">
+        <div class="time-accent blue"></div>
+        <span class="time-label-inside blue">LOCKER OUT</span>
+        <input type="time" id="locker-out-time" value="00:00" class="blue-input">
+      </div>
+    </div>
+
+    <!-- 킥오프 시간 -->
+    <div class="time-block">
+      <div class="section-label">킥오프 시간</div>
+      <div class="time-input-wrap">
+        <div class="time-accent green"></div>
+        <span class="time-label-inside green">KICK-OFF</span>
+        <input type="time" id="kickoff-time" value="00:00" class="green-input">
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- 소요시간 설정 -->
+    <div class="section-label">소요시간 설정</div>
+    <div class="stepper-group">
+
+      <div class="stepper-row">
+        <div class="stepper-icon">🏟</div>
+        <div class="stepper-info">
+          <div class="stepper-name">운동장 입장</div>
+          <div class="stepper-sub">입장 후 워밍업 시작까지</div>
+        </div>
+        <div class="stepper-ctrl">
+          <button class="stepper-btn" onclick="step('entry-gap', -1)">−</button>
+          <span class="stepper-val" id="entry-gap-display">5</span>
+          <input type="hidden" id="entry-gap" value="5">
+          <button class="stepper-btn" onclick="step('entry-gap', 1)">+</button>
+          <span class="stepper-unit">분</span>
+        </div>
+      </div>
+
+      <div class="stepper-row">
+        <div class="stepper-icon">🔥</div>
+        <div class="stepper-info">
+          <div class="stepper-name">워밍업 진행 시간</div>
+          <div class="stepper-sub">워밍업 시작 → 종료</div>
+        </div>
+        <div class="stepper-ctrl">
+          <button class="stepper-btn" onclick="step('warmup-total', -1)">−</button>
+          <span class="stepper-val" id="warmup-total-display">25</span>
+          <input type="hidden" id="warmup-total" value="25">
+          <button class="stepper-btn" onclick="step('warmup-total', 1)">+</button>
+          <span class="stepper-unit">분</span>
+        </div>
+      </div>
+
+      <div class="stepper-row">
+        <div class="stepper-icon">🔄</div>
+        <div class="stepper-info">
+          <div class="stepper-name">워밍업 종료 → 라커아웃</div>
+          <div class="stepper-sub">라커룸 복귀 후 재출발까지</div>
+        </div>
+        <div class="stepper-ctrl">
+          <button class="stepper-btn" onclick="step('locker-gap', -1)">−</button>
+          <span class="stepper-val" id="locker-gap-display">15</span>
+          <input type="hidden" id="locker-gap" value="15">
+          <button class="stepper-btn" onclick="step('locker-gap', 1)">+</button>
+          <span class="stepper-unit">분</span>
+        </div>
+      </div>
+
+    </div>
+
+    <button class="btn-calc" onclick="calculate()">타임테이블 생성</button>
+  </div>
+
+  <!-- 결과 -->
+  <div id="result-card">
+
+    <div class="section-label" style="margin-bottom:12px;">타임테이블</div>
+
+    <div class="timetable" id="timetable"></div>
+
+    <button class="btn-reset" onclick="resetForm()">↩ 다시 설정하기</button>
+  </div>
+
+</div>
+
+<script>
+  // 아이콘 생성 (Canvas → PNG → apple-touch-icon)
+  function generateIcon(size) {
+    const c = document.createElement('canvas');
+    c.width = c.height = size;
+    const ctx = c.getContext('2d');
+    const r = size * 0.18;
+
+    // 배경
+    ctx.fillStyle = '#0a1f14';
+    ctx.beginPath();
+    ctx.roundRect(0, 0, size, size, r);
+    ctx.fill();
+
+    // 상단 그린 라인
+    ctx.fillStyle = '#22c55e';
+    ctx.beginPath();
+    ctx.roundRect(0, 0, size, size * 0.035, [r, r, 0, 0]);
+    ctx.fill();
+
+    // 축구공
+    ctx.font = `${size * 0.42}px serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('⚽', size / 2, size * 0.44);
+
+    // 텍스트
+    ctx.fillStyle = '#22c55e';
+    ctx.font = `800 ${size * 0.14}px 'Inter', Arial`;
+    ctx.fillText('워밍업', size / 2, size * 0.82);
+
+    return c.toDataURL('image/png');
+  }
+
+  // apple-touch-icon 동적 설정
+  document.getElementById('apple-touch-icon').href = generateIcon(180);
+
+  // 서비스워커 등록 (오프라인 지원)
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  }
+
+  function step(id, delta) {
+    const input = document.getElementById(id);
+    const display = document.getElementById(id + '-display');
+    const min = id === 'entry-gap' ? 0 : 1;
+    const max = id === 'warmup-total' ? 120 : 60;
+    let val = parseInt(input.value) + delta;
+    val = Math.max(min, Math.min(max, val));
+    input.value = val;
+    display.textContent = val;
+  }
+
+  function parseTime(val) {
+    const [h, m] = val.split(':').map(Number);
+    const d = new Date();
+    d.setHours(h, m, 0, 0);
+    return d;
+  }
+
+  function fmt(date) {
+    return String(date.getHours()).padStart(2,'0') + ':' + String(date.getMinutes()).padStart(2,'0');
+  }
+
+  function minusMins(date, mins) {
+    return new Date(date.getTime() - mins * 60000);
+  }
+
+  function calculate() {
+    const lockerOutVal = document.getElementById('locker-out-time').value;
+    const koVal        = document.getElementById('kickoff-time').value;
+    const warmupTotal  = parseInt(document.getElementById('warmup-total').value) || 0;
+    const lockerGap    = parseInt(document.getElementById('locker-gap').value)   || 0;
+    const entryGap     = parseInt(document.getElementById('entry-gap').value)    || 0;
+
+    if (!lockerOutVal) return;
+
+    const lockerOut   = parseTime(lockerOutVal);
+    const warmupEnd   = minusMins(lockerOut,   lockerGap);
+    const warmupStart = minusMins(warmupEnd,   warmupTotal);
+    const fieldEntry  = minusMins(warmupStart, entryGap);
+
+    const ko = parseTime(koVal);
+
+    function minsBefore(eventDate) {
+      const diff = Math.round((ko - eventDate) / 60000);
+      return diff > 0 ? `경기 ${diff}분 전` : null;
+    }
+
+    const events = [
+      { icon: '🏟', name: '운동장 입장',  time: fmt(fieldEntry),  date: fieldEntry,  anchor: false, duration: entryGap > 0 ? `${entryGap}분` : null },
+      { icon: '🔥', name: '워밍업 시작',  time: fmt(warmupStart), date: warmupStart, anchor: false, duration: `${warmupTotal}분` },
+      { icon: '✅', name: '워밍업 종료',  time: fmt(warmupEnd),   date: warmupEnd,   anchor: false, duration: `${lockerGap}분` },
+      { icon: '🚪', name: '라커아웃',     time: lockerOutVal,     date: lockerOut,   anchor: true,  duration: null },
+      { icon: '⚽', name: '킥오프',       time: koVal,            date: ko,          anchor: true,  duration: null },
+    ];
+
+    const timetable = document.getElementById('timetable');
+    timetable.innerHTML = events.map((e, i) => {
+      const badge = minsBefore(e.date);
+      return `
+      <div class="tt-event ${e.anchor ? 'anchor' : 'calc'}">
+        <div class="tt-event-icon">${e.icon}</div>
+        <div class="tt-event-info">
+          <div class="tt-event-name">
+            ${e.name}
+            ${badge ? `<span class="tt-before-badge">${badge}</span>` : ''}
+          </div>
+          <div class="tt-event-time">${e.time}</div>
+        </div>
+      </div>
+      ${e.duration ? `
+        <div class="tt-connector">
+          <div class="tt-conn-line"></div>
+          <div class="tt-conn-badge">${e.duration}</div>
+        </div>
+      ` : (i < events.length - 1 ? '<div style="height:8px;"></div>' : '')}
+      `;
+    }).join('');
+
+    const rc = document.getElementById('result-card');
+    rc.style.display = 'block';
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      rc.style.opacity = '1';
+      rc.style.transform = 'translateY(0)';
+    }));
+    rc.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function resetForm() {
+    const rc = document.getElementById('result-card');
+    rc.style.opacity = '0';
+    rc.style.transform = 'translateY(16px)';
+    setTimeout(() => { rc.style.display = 'none'; }, 350);
+    document.getElementById('input-card').scrollIntoView({ behavior: 'smooth' });
+  }
+</script>
+</body>
+</html>
