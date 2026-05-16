@@ -1,4 +1,4 @@
-const CACHE = 'warmup-v1';
+const CACHE = 'warmup-v2';
 const ASSETS = ['./index.html', './manifest.json'];
 
 self.addEventListener('install', e => {
@@ -13,8 +13,21 @@ self.addEventListener('activate', e => {
   self.clients.claim();
 });
 
+// 네트워크 우선 → 실패 시 캐시 사용 (항상 최신 버전 유지)
 self.addEventListener('fetch', e => {
-  e.respondWith(
-    caches.match(e.request).then(cached => cached || fetch(e.request))
-  );
+  if (e.request.mode === 'navigate') {
+    e.respondWith(
+      fetch(e.request)
+        .then(res => {
+          const clone = res.clone();
+          caches.open(CACHE).then(c => c.put(e.request, clone));
+          return res;
+        })
+        .catch(() => caches.match(e.request))
+    );
+  } else {
+    e.respondWith(
+      caches.match(e.request).then(cached => cached || fetch(e.request))
+    );
+  }
 });
